@@ -248,7 +248,6 @@ with open(FILE_CSV, "rb") as csvfile:
 		for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
 			# If the Host Group name matches the Org, then use it
 			if org.lower() in child_host_group.get('name').lower():
-				print "Adding IP ranges to the Host Group \"" + child_host_group.get('name') + "\" with ID of " . child_host_group.get('id') + "..."
 				host_group_id = child_host_group.get('id')
 
 		# If the Host Group didn't exist, make a new one, otherwise, just update
