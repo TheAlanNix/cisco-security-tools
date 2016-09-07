@@ -34,7 +34,7 @@
 # ----------
 #
 #   1) Configure StealthWatch SW_DOMAIN_ID, SW_SMC_IP, SW_USERNAME, SW_PASSWORD
-#	2) Configure the PARENT_HOST_GROUP_ID based on where you want groups to be imported
+#   2) Configure the PARENT_HOST_GROUP_ID based on where you want groups to be imported
 #   3) Configure ORG_HOSTGROUPS array for the appropriate search strings
 #   4) Run the script / set a cron job
 #
@@ -229,24 +229,26 @@ with open(FILE_CSV, "rb") as csvfile:
 		# Create a Host Group placeholder
 		host_group_id = 0
 
-		print "Getting IP ranges for " + org + "..."
-
 		# Create and IP array for this Org
 		ip_array = []
 
 		# Reset back to the beginning of the CSV
 		csvfile.seek(0)
 
+		print "Getting IP ranges for " + org + "..."
+
 		# Go through each row of the CSV
 		for row in csv_reader:
 			# If the "Org" is in the description, then add it to our array
 			if org.lower() in row[2].lower():
+				print "Found IP range " + int2ip(row[0]) + "-" + int2ip(row[1]) + " for " + org + "..."
 				ip_array.append(int2ip(row[0]) + "-" + int2ip(row[1]))
 
 		# Iterate through all the of the children of the parent Host Group to see if it's the one we need
 		for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
 			# If the Host Group name matches the Org, then use it
 			if org.lower() in child_host_group.get('name').lower():
+				print "Adding IP ranges to the Host Group \"" + child_host_group.get('name') + "\" with ID of " . child_host_group.get('id') + "..."
 				host_group_id = child_host_group.get('id')
 
 		# If the Host Group didn't exist, make a new one, otherwise, just update
