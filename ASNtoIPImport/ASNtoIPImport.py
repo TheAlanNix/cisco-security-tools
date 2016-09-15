@@ -65,20 +65,23 @@ PARENT_HOST_GROUP_ID = 50000
 # Set Host Group names and the associated search keywords
 ORG_HOSTGROUPS = {
 	"Akamai":		["akamai"],
-	"Amazon":		["amazon"],
-	"Apple":		["apple"],
-	"Cisco":		["cisco"],
+	"Amazon":		["amazon.com"],
+	"Apple":		["AS6185 ", "AS714 "],
+	"Cisco":		["cisco systems"],
 	"Dropbox":		["dropbox"],
-	"EdgeCast":		["AS14153", "AS15133"],
+	"EdgeCast":		["AS14153 ", "AS15133 "],
 	"Facebook":		["facebook"],
 	"Google":		["google"],
+	"Hulu":			["AS23286 "],
 	"LinkedIn":		["linkedin"],
 	"Microsoft":	["microsoft"],
 	"Netflix":		["netflix"],
 	"Pandora":		["pandora"],
 	"Spotify":		["spotify"],
 	"Twitter":		["twitter"],
-	"Yahoo":		["Yahoo"],
+	"Yahoo":		["yahoo"],
+	"Youtube":		["youtube"],
+	"WebEx":		["webex"],
 }
 
 #
@@ -257,7 +260,7 @@ with open(FILE_CSV, "rb") as csvfile:
 					ip_array.append(int2ip(row[0]) + "-" + int2ip(row[1]))
 
 					# Print details about the find
-					print "Found IP range " + str(int2ip(row[0]) + "-" + int2ip(row[1])).ljust(30) + " for " + org + " with keyword " + keyword + "..."
+					print "Found IP range " + str(int2ip(row[0]) + "-" + int2ip(row[1])).ljust(30) + " for " + org + " with keyword " + keyword + " in " + row[2]
 		
 		# If the length of the ip_array is more than one, then post the data to the SMC
 		if len(ip_array) > 0:
