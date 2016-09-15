@@ -45,7 +45,7 @@
 #----------------------------------------------------#
 #
 
-# Where do get the XML data from Microsoft
+# Where to get the XML data from Microsoft
 O365_XML_URL = "https://support.content.office.net/en-us/static/O365IPAddresses.xml"
 
 # StealthWatch SMC Variables
