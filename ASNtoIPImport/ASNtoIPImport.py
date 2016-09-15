@@ -9,8 +9,8 @@
 # ----------------
 # Author: Alan Nix
 # Property of: Cisco Systems
-# Version: 1.1
-# Release Date: 9/6/2016
+# Version: 1.2
+# Release Date: 9/14/2016
 #
 # Summary
 # -------
@@ -18,7 +18,7 @@
 # This script allows you to import IP ranges for common ASNs into StealthWatch Host Groups
 # 
 # Version 1.1: Now automatically adds/updates Host Groups based on whether they exist
-#
+# Version 1.2: Added the ability to have multiple search terms per Host Group
 #
 # Requirements
 # ------------
@@ -55,24 +55,31 @@ FILE_CSV = "GeoIPASNum2.csv"
 
 # StealthWatch SMC Variables
 SW_DOMAIN_ID = "143"
-SW_SMC_IP    = "127.0.0.1s"
+SW_SMC_IP    = "127.0.0.1"
 SW_USERNAME  = "admin"
 SW_PASSWORD  = "lan411cope"
 
 # StealthWatch Parent Host Group ID
 PARENT_HOST_GROUP_ID = 50000
 
-# Set Orgs and Host Group IDs
-ORG_HOSTGROUPS = [
-	"Akamai",
-	"Amazon",
-	"Cisco",
-	"Facebook",
-	"Google",
-	"Netflix",
-	"Spotify",
-	"Twitter",
-]
+# Set Host Group names and the associated search keywords
+ORG_HOSTGROUPS = {
+	"Akamai":		["akamai"],
+	"Amazon":		["amazon"],
+	"Apple":		["apple"],
+	"Cisco":		["cisco"],
+	"Dropbox":		["dropbox"],
+	"EdgeCast":		["AS14153", "AS15133"],
+	"Facebook":		["facebook"],
+	"Google":		["google"],
+	"LinkedIn":		["linkedin"],
+	"Microsoft":	["microsoft"],
+	"Netflix":		["netflix"],
+	"Pandora":		["pandora"],
+	"Spotify":		["spotify"],
+	"Twitter":		["twitter"],
+	"Yahoo":		["Yahoo"],
+}
 
 #
 #----------------------------------------------------#
@@ -224,7 +231,7 @@ with open(FILE_CSV, "rb") as csvfile:
 	csv_reader = csv.reader(csvfile)
 
 	# Go through each "org" entry 
-	for org in ORG_HOSTGROUPS:
+	for org, keywords in ORG_HOSTGROUPS.items():
 
 		# Create a Host Group placeholder
 		host_group_id = 0
@@ -232,31 +239,46 @@ with open(FILE_CSV, "rb") as csvfile:
 		# Create and IP array for this Org
 		ip_array = []
 
-		# Reset back to the beginning of the CSV
-		csvfile.seek(0)
-
 		print "Getting IP ranges for " + org + "..."
 
-		# Go through each row of the CSV
-		for row in csv_reader:
-			# If the "Org" is in the description, then add it to our array
-			if org.lower() in row[2].lower():
-				print "Found IP range " + int2ip(row[0]) + "-" + int2ip(row[1]) + " for " + org + "..."
-				ip_array.append(int2ip(row[0]) + "-" + int2ip(row[1]))
+		# Go through each keyword for the Host Group
+		for keyword in keywords:
 
-		# Iterate through all the of the children of the parent Host Group to see if it's the one we need
-		for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
-			# If the Host Group name matches the Org, then use it
-			if org.lower() in child_host_group.get('name').lower():
-				host_group_id = child_host_group.get('id')
+			# Reset back to the beginning of the CSV
+			csvfile.seek(0)
 
-		# If the Host Group didn't exist, make a new one, otherwise, just update
-		if host_group_id is 0:
-			print "Submitting XML to the SMC for " + org + " and creating a new group"
-			submitXMLToSMC(addHostGroupXML(ip_array, org))
+			# Go through each row of the CSV
+			for row in csv_reader:
+				
+				# If the keyword is in the description, then add it to our array
+				if keyword.lower() in row[2].lower():
+
+					# Add the IP range to our array
+					ip_array.append(int2ip(row[0]) + "-" + int2ip(row[1]))
+
+					# Print details about the find
+					print "Found IP range " + str(int2ip(row[0]) + "-" + int2ip(row[1])).ljust(30) + " for " + org + " with keyword " + keyword + "..."
+		
+		# If the length of the ip_array is more than one, then post the data to the SMC
+		if len(ip_array) > 0:
+
+			# Iterate through all the of the children of the parent Host Group to see if it's the one we need
+			for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
+				
+				# If the Host Group name matches the Org, then use it
+				if org.lower() in child_host_group.get('name').lower():
+					host_group_id = child_host_group.get('id')
+
+			# If the Host Group didn't exist, make a new one, otherwise, just update
+			if host_group_id is 0:
+				print "Submitting XML to the SMC for " + org + " and creating a new group"
+				submitXMLToSMC(addHostGroupXML(ip_array, org))
+			else:
+				print "Submitting XML to the SMC for " + org + " and Group ID " + str(host_group_id)
+				submitXMLToSMC(setHostGroupIPRangeXML(ip_array, host_group_id))
 		else:
-			print "Submitting XML to the SMC for " + org + " and Group ID " + str(host_group_id)
-			submitXMLToSMC(setHostGroupIPRangeXML(ip_array, host_group_id))
+			# Print that we didn't find any data
+			print "No IP Ranges were found for the Org " + org + "..."
 
 # Clean up the downloaded/extracted files
 os.remove(FILE_CSV)
