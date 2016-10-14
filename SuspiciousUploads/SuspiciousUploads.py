@@ -28,12 +28,16 @@
 # ----------
 #
 #	1) Configure Email variables EMAIL_RELAY, EMAIL_FROM, EMAIL_TO
-#	2) Configure the Byte/Subnet Peer limits to tune out noise
+#	2) Configure the Byte/Subnet Peer limits, and Netmask to tune out noise
 #	3) Configure a "trusted" Host Group to allow for tuning
 #	4) Run the script / set a cron job
 #
 ############################################################
 
+import datetime
+import os
+import smtplib
+import subprocess
 
 ####################
 #  CONFIGURATION   #
@@ -61,15 +65,9 @@ PEER_COUNT_TIME	= datetime.datetime.utcnow() - datetime.timedelta(days = 30)
 #
 #----------------------------------------------------#
 
-
 ####################
 # !!! DO WORK !!!  #
 ####################
-
-import datetime
-import os
-import smtplib
-import subprocess
 
 #----------------------------------------------------#
 # A function to run a remote command on the FlowCollector
@@ -137,6 +135,8 @@ JOIN
 				COUNT(DISTINCT client_ip_address) AS peer_count
 			FROM flow_stats
 			WHERE (server_group_list LIKE '%,'||'0'||',%')
+				AND last_time >= '{}'
+				AND last_time < '{}'
 			GROUP BY server_ip_address) AS first_seen_list
 		JOIN
 			(SELECT
@@ -151,12 +151,14 @@ JOIN
 	WHERE server_first_seen >= '{}'
 	AND subnet_peer_count <= {}
 	ORDER BY subnet_peer_count, server_first_seen ASC) AS recent_low_peer_subnets
-ON recent_low_peer_subnets.server_ip = uploads_to_outside.server_ip""".format(START_TIME, CURRENT_TIME, TRUSTED_HOST_GROUP, EXFIL_BYTE_COUNT, SUBNET_GROUPING_NETMASK, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, START_TIME, EXFIL_PEER_COUNT)
+ON recent_low_peer_subnets.server_ip = uploads_to_outside.server_ip""".format(START_TIME, CURRENT_TIME, TRUSTED_HOST_GROUP, EXFIL_BYTE_COUNT, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, START_TIME, EXFIL_PEER_COUNT)
 
 	return query_string
 #----------------------------------------------------#
 
 query_results = runQuery(makeSuspiciousExfiltrationQuery())
+
+print query_results
 
 # If no query results were returned, then exit
 if "(0 rows)" in query_results:
