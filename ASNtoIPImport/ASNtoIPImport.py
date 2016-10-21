@@ -100,7 +100,9 @@ import xml.etree.ElementTree
 import zipfile
 
 from requests.auth import HTTPBasicAuth
-requests.packages.urllib3.disable_warnings()
+
+# If receiving SSL Certificate Errors, un-comment the line below
+#requests.packages.urllib3.disable_warnings()
 
 #----------------------------------------------------#
 # A function to take MaxMind's IP format and make it readable.
@@ -131,7 +133,7 @@ def getHostGroupsXML():
 #----------------------------------------------------#
 
 #----------------------------------------------------#
-# A function to build getHostGroups XML for the SMC
+# A function to build addHostGroup XML for the SMC
 def addHostGroupXML(ip_array, org_name):
 	global SW_DOMAIN_ID, PARENT_HOST_GROUP_ID
 

@@ -117,9 +117,7 @@ def makeSuspiciousExfiltrationQuery():
 		FROM flow_stats
 		WHERE last_time >= '{}'
 			AND last_time < '{}'
-			AND ((client_group_list LIKE '%,'||'1'||',%')
-				AND ((server_group_list LIKE '%,'||'0'||',%')
-					AND (server_group_list NOT LIKE '%,'||'{}'||',%')))
+			AND (((client_group_list LIKE '%,'||'1'||',%') AND (client_group_list NOT LIKE '%,'||'{}'||',%')) AND (server_group_list LIKE '%,'||'0'||',%'))
 		GROUP BY id
 		ORDER BY SUM(client_bytes) DESC) AS client_orientation
 	WHERE client_percentage > 60
@@ -151,7 +149,7 @@ JOIN
 	WHERE server_first_seen >= '{}'
 	AND subnet_peer_count <= {}
 	ORDER BY subnet_peer_count, server_first_seen ASC) AS recent_low_peer_subnets
-ON recent_low_peer_subnets.server_ip = uploads_to_outside.server_ip""".format(START_TIME, CURRENT_TIME, TRUSTED_HOST_GROUP, EXFIL_BYTE_COUNT, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, START_TIME, EXFIL_PEER_COUNT)
+ON recent_low_peer_subnets.server_ip = uploads_to_outside.server_ip""".format(START_TIME, CURRENT_TIME, TRUSTED_HOST_GROUP, TRUSTED_HOST_GROUP, EXFIL_BYTE_COUNT, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, SUBNET_GROUPING_NETMASK, PEER_COUNT_TIME, CURRENT_TIME, START_TIME, EXFIL_PEER_COUNT)
 
 	return query_string
 #----------------------------------------------------#
@@ -171,7 +169,7 @@ To: {}
 Subject: Suspicious Uploads Report from StealthWatch - {}
 
 {}
-""".format(EMAIL_FROM, EMAIL_TO, CURRENT_TIME, query_results)
+""".format(EMAIL_FROM, ", ".join(EMAIL_TO), CURRENT_TIME, query_results)
 
 # Send the results of the query
 email_server = smtplib.SMTP(EMAIL_RELAY)
