@@ -267,12 +267,16 @@ with open(FILE_CSV, "rb") as csvfile:
 		# If the length of the ip_array is more than one, then post the data to the SMC
 		if len(ip_array) > 0:
 
-			# Iterate through all the of the children of the parent Host Group to see if it's the one we need
-			for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
-				
-				# If the Host Group name matches the Org, then use it
-				if org.lower() in child_host_group.get('name').lower():
-					host_group_id = child_host_group.get('id')
+			try: 
+				# Iterate through all the of the children of the parent Host Group to see if it's the one we need
+				for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
+					
+					# If the Host Group name matches the Org, then use it
+					if org.lower() in child_host_group.get('name').lower():
+						host_group_id = child_host_group.get('id')
+			except:
+				print '\033[1;31mUnable to locate either the Domain ID or Host Group ID - Please check the config section of the script.\033[1;m'
+				exit()
 
 			# If the Host Group didn't exist, make a new one, otherwise, just update
 			if host_group_id is 0:
