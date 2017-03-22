@@ -9,8 +9,8 @@
 # ----------------
 # Author: Alan Nix
 # Property of: Cisco Systems
-# Version: 1.2
-# Release Date: 9/14/2016
+# Version: 1.3
+# Release Date: 3/21/2017
 #
 # Summary
 # -------
@@ -19,6 +19,7 @@
 # 
 # Version 1.1: Now automatically adds/updates Host Groups based on whether they exist
 # Version 1.2: Added the ability to have multiple search terms per Host Group
+# Version 1.3: MaxMind changed the format of their zip file, so updated the unzip code
 #
 # Requirements
 # ------------
@@ -51,10 +52,9 @@
 # Build file references
 FILE_URL = "http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum2.zip"
 FILE_ZIP = "GeoIPASNum2.zip"
-FILE_CSV = "GeoIPASNum2.csv"
 
 # StealthWatch SMC Variables
-SW_DOMAIN_ID = "143"
+SW_DOMAIN_ID = "123"
 SW_SMC_IP    = "127.0.0.1"
 SW_USERNAME  = "admin"
 SW_PASSWORD  = "lan411cope"
@@ -80,7 +80,6 @@ ORG_HOSTGROUPS = {
 	"Spotify":		["spotify"],
 	"Twitter":		["twitter"],
 	"Yahoo":		["yahoo"],
-	"Youtube":		["youtube"],
 	"WebEx":		["webex"],
 }
 
@@ -225,12 +224,16 @@ print "Unzipping downloaded file..."
 
 # Unzip the file from MaxMind
 with zipfile.ZipFile(FILE_ZIP, "r") as z:
-	z.extractall()
+	file_name = z.namelist()
+	file_name = file_name[0]
+	z.extract(file_name)
+
+file_name = '.' + file_name
 
 print "Opening CSV..."
 
 # Open the CSV file and parse it
-with open(FILE_CSV, "rb") as csvfile:
+with open(file_name, "rb") as csvfile:
 	
 	# Set up the CSV Reader
 	csv_reader = csv.reader(csvfile)
@@ -290,5 +293,5 @@ with open(FILE_CSV, "rb") as csvfile:
 			print "No IP Ranges were found for the Org " + org + "..."
 
 # Clean up the downloaded/extracted files
-os.remove(FILE_CSV)
+os.remove(file_name)
 os.remove(FILE_ZIP)
