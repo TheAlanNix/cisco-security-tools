@@ -101,7 +101,7 @@ import zipfile
 from requests.auth import HTTPBasicAuth
 
 # If receiving SSL Certificate Errors, un-comment the line below
-#requests.packages.urllib3.disable_warnings()
+requests.packages.urllib3.disable_warnings()
 
 #----------------------------------------------------#
 # A function to take MaxMind's IP format and make it readable.
@@ -228,7 +228,7 @@ with zipfile.ZipFile(FILE_ZIP, "r") as z:
 	file_name = file_name[0]
 	z.extract(file_name)
 
-file_name = '.' + file_name
+file_name = './' + file_name
 
 print "Opening CSV..."
 
