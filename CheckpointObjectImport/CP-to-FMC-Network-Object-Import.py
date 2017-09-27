@@ -475,6 +475,10 @@ if __name__ == "__main__":
 					# Get the member type and capitalize the first letter
 					member_type = member['type'].title()
 
+					# Checkpoint calls ranges "Address-Range" - so convert it
+					if member_type == "Address-Range":
+						member_type = "Range"
+
 					# Add the translated object UUID to the objects list
 					GROUP_OBJECTS[group['uid']]['objects'].append({
 						'type': member_type,
