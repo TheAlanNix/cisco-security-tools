@@ -128,7 +128,7 @@ def submitXMLToSMC(xml):
 		http_req = requests.post(url=SMC_URL, auth=auth, data=xml, verify=False)
 
 		# Check to make sure the POST was successful
-		if http_req.status_code >= 200 or http_req.status_code < 300:
+		if http_req.status_code >= 200 and http_req.status_code < 300:
 			print 'Success.'
 			return http_req.text
 		else:
