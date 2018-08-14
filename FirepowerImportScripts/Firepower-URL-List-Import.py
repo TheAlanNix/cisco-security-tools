@@ -20,11 +20,11 @@
 # Requirements
 # ------------
 #
-#   1) Must have Python installed.
+#	1) Must have Python installed.
 #	2) Must have 'requests' Python module installed.  Easiest way to do that:
-#     - wget https://bootstrap.pypa.io/get-pip.py
-#     - python get-pip.py		(may need to use 'sudo')
-#     - pip install requests	(may need to use 'sudo')
+#		- wget https://bootstrap.pypa.io/get-pip.py
+#		- python get-pip.py		(may need to use 'sudo')
+#		- pip install requests	(may need to use 'sudo')
 #	3) Must have API access to a Firepower Management Console
 #
 # How To Run
