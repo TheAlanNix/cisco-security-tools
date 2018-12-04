@@ -16,51 +16,51 @@
 
 <script>
 
-	var allowed_domains = ['example.com'];
+    var allowed_domains = ['example.com'];
 
-	$(function() {
-		
-		var timeout;
+    $(function() {
+        
+        var timeout;
 
-		$('#guestUser\\.fieldValues\\.ui_person_visited').on('input focus focusout', function () {
-			clearTimeout(timeout);
-			timeout = setTimeout(validateEmail, 300);
-		});
-	});
+        $('#guestUser\\.fieldValues\\.ui_person_visited').on('input focus focusout', function () {
+            clearTimeout(timeout);
+            timeout = setTimeout(validateEmail, 300);
+        });
+    });
 
-	function validateEmail() {
+    function validateEmail() {
 
-		var entered_email = $('#guestUser\\.fieldValues\\.ui_person_visited').val();
+        var entered_email = $('#guestUser\\.fieldValues\\.ui_person_visited').val();
 
-		var split_email = entered_email.split("@");
+        var split_email = entered_email.split("@");
 
-		if (split_email.length > 1) {
-			if (split_email[1].length > 1) {
+        if (split_email.length > 1) {
+            if (split_email[1].length > 1) {
 
-				for (i = 0; i < allowed_domains.length; i++) {
-					console.log("Comparing " + allowed_domains[i] + " to " + split_email[1]);
-					console.log(allowed_domains[i] == split_email[1]);
+                for (i = 0; i < allowed_domains.length; i++) {
+                    console.log("Comparing " + allowed_domains[i] + " to " + split_email[1]);
+                    console.log(allowed_domains[i] == split_email[1]);
 
-					if (allowed_domains[i] == split_email[1]) {
-						$('#guestUser\\.fieldValues\\.ui_person_visited').removeClass('ui-body-c');
-						$('#guestUser\\.fieldValues\\.ui_person_visited').parent().removeClass('ui-body-c');
-						$('#ui_invalid_domain').remove();
-						$('#ui_self_reg_submit_button').removeAttr("disabled");
-						return;
-					}
-				}
+                    if (allowed_domains[i] == split_email[1]) {
+                        $('#guestUser\\.fieldValues\\.ui_person_visited').removeClass('ui-body-c');
+                        $('#guestUser\\.fieldValues\\.ui_person_visited').parent().removeClass('ui-body-c');
+                        $('#ui_invalid_domain').remove();
+                        $('#ui_self_reg_submit_button').removeAttr("disabled");
+                        return;
+                    }
+                }
 
-				console.log("Domain " + split_email[1] + " was invalid.");
+                console.log("Domain " + split_email[1] + " was invalid.");
 
-				$('#guestUser\\.fieldValues\\.ui_person_visited').addClass('ui-body-c');
-				$('#guestUser\\.fieldValues\\.ui_person_visited').parent().addClass('ui-body-c');
-				if ($('#ui_invalid_domain').length == 0) {
-					$('#guestUser\\.fieldValues\\.ui_person_visited').parent().before('<label id="ui_invalid_domain" for="guestUser.fieldValues.ui_person_visited" class="error ui-body-c" style="display: inline;">Invalid email domain.</label>');
-				} else {
-					$('#ui_invalid_domain').show();
-				}
-				$('#ui_self_reg_submit_button').attr("disabled", "disabled");
-			}
-		}
-	}
+                $('#guestUser\\.fieldValues\\.ui_person_visited').addClass('ui-body-c');
+                $('#guestUser\\.fieldValues\\.ui_person_visited').parent().addClass('ui-body-c');
+                if ($('#ui_invalid_domain').length == 0) {
+                    $('#guestUser\\.fieldValues\\.ui_person_visited').parent().before('<label id="ui_invalid_domain" for="guestUser.fieldValues.ui_person_visited" class="error ui-body-c" style="display: inline;">Invalid email domain.</label>');
+                } else {
+                    $('#ui_invalid_domain').show();
+                }
+                $('#ui_self_reg_submit_button').attr("disabled", "disabled");
+            }
+        }
+    }
 </script>

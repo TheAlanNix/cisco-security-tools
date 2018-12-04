@@ -40,3 +40,15 @@ The *NetworkObjectDelete* file will remove all objects from the FMC which have a
 ## [FirepowerImportScripts](FirepowerImportScripts/)
 
 These scripts are meant to be very basic examples of how to import Hosts / URLs from a CSV, into an object in the Firepower Management Center.
+
+## [FirepowerLogstash](FirepowerLogstash/)
+
+This is a simple Logstash configuration for the Firepower Syslog format.  This config works with 6.2.3 and earlier - Firepower 6.3 is scheduled to change the syslog format, so it may not work with that version.
+
+## [FirepowerPolicyToCSV](FirepowerPolicyToCSV/)
+
+This script will export an Access Control Policy from the FMC into a CSV file.  Just run the script, and you'll get prompted for the FMC IP/Username/Password.  The script will connect to the FMC, then list all of the Access Control policies and allow you to pick which one you want to export.
+
+## [ISEPortalTweaks](ISEPortalTweaks/)
+
+This is a collection of files that can be used to augment the behavior of portals within ISE.
