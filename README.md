@@ -43,7 +43,7 @@ These scripts are meant to be very basic examples of how to import Hosts / URLs 
 
 ## [FirepowerLogstash](FirepowerLogstash/)
 
-This is a simple Logstash configuration for the Firepower Syslog format.  This config works with 6.2.3 and earlier - Firepower 6.3 is scheduled to change the syslog format, so it may not work with that version.
+This is a simple Logstash configuration for the Firepower Syslog format.  This config should work with 6.2.3 and prior, and it should also now support the new syslog format for FTD 6.3
 
 ## [FirepowerPolicyToCSV](FirepowerPolicyToCSV/)
 
