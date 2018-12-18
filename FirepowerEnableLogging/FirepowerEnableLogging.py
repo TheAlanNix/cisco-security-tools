@@ -40,12 +40,12 @@ import getpass
 import logging
 import json
 import requests
+from requests.packages import urllib3
 
 from requests.auth import HTTPBasicAuth
-from pprint import pprint
 
 # If receiving SSL Certificate Errors, un-comment the line below
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 ####################
 #  CONFIGURATION   #
