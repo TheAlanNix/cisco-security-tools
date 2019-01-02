@@ -60,3 +60,9 @@ This script will export an Access Control Policy from the FMC into a CSV file.  
 ## [ISEPortalTweaks](ISEPortalTweaks/)
 
 This is a collection of files that can be used to augment the behavior of portals within ISE.
+
+## [StealthwatchExporterUpdate](StealthwatchExporterUpdate/)
+
+This is a collection of scripts that can be used to manipulate exporters in Stealthwatch.  The *getExporters* script will grab all exporter IPs from Stealthwatch, and export them to a CSV file.  The *bulkDeleteExporters* script is meant to be used when cleaning up decomissioned routers/firewalls/switches - it will remove all exporters (sans FlowSensors) that are not explicitly defined in a whitelist.
+
+These are decent examples of how to leverage the REST API code within Stealthwatch.
