@@ -66,3 +66,7 @@ This is a collection of files that can be used to augment the behavior of portal
 This is a collection of scripts that can be used to manipulate exporters in Stealthwatch.  The *getExporters* script will grab all exporter IPs from Stealthwatch, and export them to a CSV file.  The *bulkDeleteExporters* script is meant to be used when cleaning up decomissioned routers/firewalls/switches - it will remove all exporters (sans FlowSensors) that are not explicitly defined in a whitelist.
 
 These are decent examples of how to leverage the REST API code within Stealthwatch.
+
+## [TalosBlacklistImport](TalosBlacklistImport/)
+
+This is a script to import the Talos IP Blacklist into a specific host group within Stealthwatch.  This would also allow you to also set a Custom Security Event for any traffic to/from IPs within that host group.
