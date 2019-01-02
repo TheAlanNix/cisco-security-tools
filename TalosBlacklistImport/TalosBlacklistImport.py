@@ -9,8 +9,8 @@
 # ----------------
 # Author: Alan Nix
 # Property of: Cisco Systems
-# Version: 1.0
-# Release Date: 4/28/2016
+# Version: 2.0
+# Release Date: 01/02/2018
 #
 # Summary
 # -------
@@ -26,7 +26,6 @@
 #     - wget https://bootstrap.pypa.io/get-pip.py
 #     - python get-pip.py       (may need to use 'sudo')
 #     - pip install requests    (may need to use 'sudo')
-#
 #
 # How To Run
 # ----------
