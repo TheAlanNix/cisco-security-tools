@@ -15,14 +15,14 @@
 # Summary
 # -------
 #
-# This script gets the exporters out of StealthWatch, compares it to a whitelist, 
+# This script gets the exporters out of StealthWatch, compares it to a whitelist,
 # and then deletes exporters that don't exist in the configured Whitelist.
 #
 #
 # Requirements
 # ------------
 #
-#   1) Must have Python installed.
+#   1) Must have Python 3.x installed.
 #   2) Must have 'requests' Python module installed.  Easiest way to do that:
 #     - wget https://bootstrap.pypa.io/get-pip.py
 #     - python get-pip.py       (may need to use 'sudo')
@@ -51,17 +51,17 @@ urllib3.disable_warnings()
 #  CONFIGURATION   #
 ####################
 #
-#----------------------------------------------------#
+# ----------------------------------------------------#
 #
 
 # Setup an API session
-API_SESSION     = requests.Session()
+API_SESSION = requests.Session()
 
 # StealthWatch SMC Variables
-SW_DOMAIN_ID    = None
-SW_SMC_ADDRESS  = ""
-SW_USERNAME     = ""
-SW_PASSWORD     = ""
+SW_DOMAIN_ID = None
+SW_SMC_ADDRESS = ""
+SW_USERNAME = ""
+SW_PASSWORD = ""
 
 # Exporter Whitelist
 EXPORTER_WHITELIST = [
@@ -69,16 +69,16 @@ EXPORTER_WHITELIST = [
 ]
 
 #
-#----------------------------------------------------#
+# ----------------------------------------------------#
 
 
 ####################
 #    FUNCTIONS     #
 ####################
 
-#----------------------------------------------------#
-# Get REST API Token
+
 def getAccessToken():
+    '''Get REST API Token'''
 
     # The URL to authenticate to the SMC
     url = "https://" + SW_SMC_ADDRESS + "/token/v2/authenticate"
@@ -106,11 +106,10 @@ def getAccessToken():
     except Exception as err:
         print('Unable to post to the SMC - Error: {}'.format(err))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# Get the "tenants" (domains) from Stealthwatch
+
 def getTenants():
+    '''Get the "tenants" (domains) from Stealthwatch'''
 
     global SW_DOMAIN_ID
 
@@ -155,11 +154,10 @@ def getTenants():
     else:
         print('SMC Connection Failure - HTTP Return Code: {}\nResponse: {}'.format(response.status_code, response.text))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# Get the Exporters from Stealthwatch
+
 def getExporters():
+    '''Get the Exporters from Stealthwatch'''
 
     # The URL to get Exporters
     url = 'https://{}/sw-reporting/v1/tenants/{}/netops/exporters/details/True'.format(SW_SMC_ADDRESS, SW_DOMAIN_ID)
@@ -179,11 +177,10 @@ def getExporters():
     else:
         print('SMC Connection Failure - HTTP Return Code: {}\nResponse: {}'.format(response.status_code, response.text))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to build removeExporters XML for the SMC
+
 def removeExportersXML(exporter_dict):
+    '''Build removeExporters XML for the SMC'''
 
     # Build the XML
     return_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -212,11 +209,10 @@ def removeExportersXML(exporter_dict):
     return_xml += "</soapenc:Envelope>"
 
     return return_xml
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to post supplied XML to the SMC
+
 def submitXMLToSMC(xml):
+    '''A function to post supplied XML to the SMC'''
 
     # Build the SMC URL
     SMC_URL = "https://{}/smc/swsService/configuration".format(SW_SMC_ADDRESS)
@@ -241,16 +237,15 @@ def submitXMLToSMC(xml):
     except Exception as err:
         print('Unable to post to the SMC - Error: {}'.format(err))
         exit()
-#----------------------------------------------------#
 
 
 ####################
 # !!! DO WORK !!!  #
 ####################
 
-#----------------------------------------------------#
-# A function to gather all exporters, and remove the ones that are not whitelisted.
+
 if __name__ == "__main__":
+    '''Gather all exporters, and remove the ones that are not whitelisted.'''
 
     # If not hard coded, get the SMC IP, Username and Password
     if not SW_SMC_ADDRESS:
@@ -300,5 +295,4 @@ if __name__ == "__main__":
     print(removeExportersXML(exporter_purge_dict))
 
     # PRODUCTION - Submits the XML to the SMC
-    #print(submitXMLToSMC(removeExportersXML(exporter_purge_dict)))
-#----------------------------------------------------#
+    # print(submitXMLToSMC(removeExportersXML(exporter_purge_dict)))
