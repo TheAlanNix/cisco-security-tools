@@ -9,8 +9,8 @@
 # ----------------
 # Author: Alan Nix
 # Property of: Cisco Systems
-# Version: 1.0
-# Release Date: 12/17/2018
+# Version: 1.1
+# Release Date: 02/23/2019
 #
 # Summary
 # -------
@@ -18,14 +18,20 @@
 # This script will connect to the Firepower Management Center and then enable logging on all rules in a selected access policy.
 # Currently this only works with Firepower 6.3.
 #
+# Version 1.1:
+#   - Added logic to check to see if all logging is already enabled.
+#   - Attempt to automatically renew the auth token if a 401 is recieved from the FMC.
+#   - Converted script to PEP-8 formatting.
+#
 # Requirements
 # ------------
 #
-#   1) Must have Python installed.
-#   2) Must have 'requests' Python module installed.  Easiest way to do that:
-#       - wget https://bootstrap.pypa.io/get-pip.py
-#       - python get-pip.py     (may need to use 'sudo')
-#       - pip install requests  (may need to use 'sudo')
+#   1) Must have Python 3.x installed.
+#   2) Must have 'requests' Python module installed.
+#       You'll probably want to set up a virtual environment (https://docs.python.org/3/tutorial/venv.html)
+#     - wget https://bootstrap.pypa.io/get-pip.py
+#     - python get-pip.py       (may need to use 'sudo')
+#     - pip install requests    (may need to use 'sudo')
 #   3) Must have API access to a Firepower Management Console
 #
 # How To Run
@@ -39,9 +45,10 @@
 import getpass
 import logging
 import json
-import requests
-from requests.packages import urllib3
 
+import requests
+
+from requests.packages import urllib3
 from requests.auth import HTTPBasicAuth
 
 # If receiving SSL Certificate Errors, un-comment the line below
@@ -51,32 +58,37 @@ urllib3.disable_warnings()
 #  CONFIGURATION   #
 ####################
 #
-#----------------------------------------------------#
+# ---------------------------------------------------- #
 #
 
 # Logging Parameters
 logging.basicConfig(filename='FirepowerEnableLogging.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filemode='w', level=logging.INFO)
 
 # Firepower Management Console Variables
-FMC_IP          = ""
-FMC_USERNAME    = None
-FMC_PASSWORD    = None
-FMC_AUTH_TOKEN  = None
+FMC_IP = ""
+FMC_USERNAME = None
+FMC_PASSWORD = None
 FMC_DOMAIN_UUID = None
 
 #
-#----------------------------------------------------#
+# ---------------------------------------------------- #
+
+#################
+#    GLOBALS    #
+#################
+
+FMC_AUTH_TOKEN = None
+FMC_REFRESH_TOKEN = None
+
+###################
+#    FUNCTIONS    #
+###################
 
 
-####################
-# !!! DO WORK !!!  #
-####################
+def get_auth_token():
+    '''A function to get an authentication token from the FMC'''
 
-
-#----------------------------------------------------#
-# A function to get an authentication token from the FMC
-def getAuthToken():
-    global FMC_AUTH_TOKEN, FMC_DOMAIN_UUID
+    global FMC_AUTH_TOKEN, FMC_REFRESH_TOKEN, FMC_DOMAIN_UUID
 
     logging.info('Fetching Authentication Token from FMC...')
 
@@ -96,13 +108,16 @@ def getAuthToken():
 
         # Store the auth token
         FMC_AUTH_TOKEN = http_req.headers.get('X-auth-access-token', default=None)
-        
+
+        # Store the refresh token
+        FMC_REFRESH_TOKEN = http_req.headers.get('X-auth-refresh-token', default=None)
+
         # Let the user pick the domain
         domain_data = json.loads(http_req.headers.get('DOMAINS', default=None))
-        FMC_DOMAIN_UUID = Process_Domains(domain_data)
+        FMC_DOMAIN_UUID = process_domains(domain_data)
 
         # If we didn't get a token, then something went wrong
-        if FMC_AUTH_TOKEN == None:
+        if FMC_AUTH_TOKEN is None:
             print('Authentication Token Not Found...')
             logging.error('Authentication Token Not Found. Exiting...')
             exit()
@@ -111,14 +126,52 @@ def getAuthToken():
         logging.debug('Auth Token: {}'.format(FMC_AUTH_TOKEN))
 
     except Exception as err:
-        print('Error fetching auth token from FMC: ' + str(err))
-        logging.error('Error fetching auth token from FMC: ' + str(err))
+        print('Error fetching auth token from FMC: {}'.format(err))
+        logging.error('Error fetching auth token from FMC: {}'.format(err))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to parse the domains returned by the FMC
-def Process_Domains(domain_list):
+
+def refresh_auth_token():
+    '''A function to refresh the FMC auth token'''
+
+    global FMC_AUTH_TOKEN, FMC_REFRESH_TOKEN
+
+    logging.info('Refreshing Authentication Token from FMC...')
+
+    # Build HTTP Headers
+    auth_headers = {'Content-Type': 'application/json', 'X-auth-access-token': FMC_AUTH_TOKEN, 'X-auth-refresh-token': FMC_REFRESH_TOKEN}
+
+    # Build URL for token refresh
+    auth_url = "https://{}/api/fmc_platform/v1/auth/refreshtoken".format(FMC_IP)
+
+    try:
+        http_req = requests.post(url=auth_url, headers=auth_headers, verify=False)
+
+        logging.debug('FMC Auth Response:\n{}'.format(http_req.headers))
+
+        # Store the auth token
+        FMC_AUTH_TOKEN = http_req.headers.get('X-auth-access-token', default=None)
+
+        # Store the refresh token
+        FMC_REFRESH_TOKEN = http_req.headers.get('X-auth-refresh-token', default=None)
+
+        # If we didn't get a token, then something went wrong
+        if FMC_AUTH_TOKEN is None:
+            print('Authentication Token Not Found. This likely means we\'ve refreshed three times, a hard limit on the FMC.')
+            logging.error('Authentication Token Not Found. This likely means we\'ve refreshed three times, a hard limit on the FMC. Exiting...')
+            exit()
+
+        logging.info('Authentication Token Successfully Refreshed.')
+        logging.debug('Auth Token: {}'.format(FMC_AUTH_TOKEN))
+
+    except Exception as err:
+        print('Error refreshing auth token from FMC: {}'.format(err))
+        logging.error('Error refreshing auth token from FMC: {}'.format(err))
+        exit()
+
+
+def process_domains(domain_list):
+    '''A function to parse the domains returned by the FMC'''
 
     RETURN_UUID = None
 
@@ -134,7 +187,7 @@ def Process_Domains(domain_list):
         for domain in domain_list:
             print("{}) {}".format(domain_index, domain['name']))
             domain_index += 1
-        
+
         # Prompt the user for the domain
         selected_domain = input("\nDomain Selection: ")
 
@@ -146,15 +199,14 @@ def Process_Domains(domain_list):
             exit()
 
     return RETURN_UUID
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to call the FMC API
-def Call_FMC_API(method, endpoint, json_data=None):
+
+def call_fmc_api(method, endpoint, json_data=None, retry=3):
+    '''A function to call the FMC API'''
 
     # If there's no FMC Authentication Token, then fetch one
-    if FMC_AUTH_TOKEN == None:
-        getAuthToken()
+    if FMC_AUTH_TOKEN is None:
+        get_auth_token()
 
     if method in ['GET', 'DELETE']:
         logging.info('Submitting {} resource call to the FMC via {} request.'.format(endpoint, method))
@@ -182,6 +234,22 @@ def Call_FMC_API(method, endpoint, json_data=None):
             logging.info('Request succesfully sent to FMC.')
             logging.debug('HTTP Response:\n{}'.format(http_req.text))
             return http_req.json()
+        elif http_req.status_code == 401:
+
+            # Decrement retries
+            retry -= 1
+
+            # If we've hit the retry limit, bail
+            if retry == 0:
+                print('Error refreshing auth token from FMC. Retry limit exceeded.')
+                logging.error('Error refreshing auth token from FMC. Retry limit exceeded.')
+                exit()
+
+            # Attempt to refresh the auth token
+            refresh_auth_token()
+
+            # Retry the current API call
+            call_fmc_api(method, endpoint, json_data, retry=retry)
         else:
             print("FMC Connection Failure - HTTP Return Code: {}\nResponse: {}".format(http_req.status_code, http_req.json()))
             logging.error("FMC Connection Failure - HTTP Return Code: {}\nResponse: {}".format(http_req.status_code, http_req.json()))
@@ -191,11 +259,10 @@ def Call_FMC_API(method, endpoint, json_data=None):
         print('Error posting request to FMC: {}'.format(err))
         logging.error('Error posting request to FMC: {}'.format(err))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to call the FMC API and get all paginated results
-def Call_FMC_API_All(endpoint):
+
+def call_fmc_api_paginated(endpoint):
+    '''A function to call the FMC API and get all paginated results'''
 
     logging.info('Fetching all objects from the {} endpoint.'.format(endpoint))
 
@@ -216,7 +283,7 @@ def Call_FMC_API_All(endpoint):
         logging.info('Submitting request to {}'.format(paginated_url))
 
         # Get the objects from the FMC
-        fmc_response = Call_FMC_API('GET', paginated_url)
+        fmc_response = call_fmc_api('GET', paginated_url)
 
         if 'items' not in fmc_response:
             break
@@ -236,11 +303,15 @@ def Call_FMC_API_All(endpoint):
     logging.debug('All paginated results from {}:\n{}'.format(endpoint, item_list))
 
     return item_list
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to enable logging on all rules within an Access Control Policy
+
+###################
+# !!! DO WORK !!! #
+###################
+
+
 if __name__ == "__main__":
+    '''Enable logging on all rules within an Access Control Policy'''
 
     # If not hard coded, get the FMC IP, Username and Password
     if not FMC_IP:
@@ -251,7 +322,7 @@ if __name__ == "__main__":
         FMC_PASSWORD = getpass.getpass("FMC Password: ")
 
     # Fetch all policies from the FMC
-    access_policies = Call_FMC_API_All('policy/accesspolicies')
+    access_policies = call_fmc_api_paginated('policy/accesspolicies')
 
     print("\nPlease select one of the following policies to export:\n")
 
@@ -274,7 +345,7 @@ if __name__ == "__main__":
 
     print("Working...")
 
-    ######### TODO #########
+    # ######## TODO #########
     # The API for the FMC currently isn't letting me change the default action logging
     #
     #    # Get the Default Actions for the Access Policy
@@ -299,12 +370,17 @@ if __name__ == "__main__":
     #    logging.info("New Default Actions:\n{}".format(json.dumps(default_actions, indent=4)))
 
     # Get the policy rules from the FMC
-    access_policy_rules = Call_FMC_API_All('policy/accesspolicies/{}/accessrules'.format(access_policies[selected_policy]["id"]))
+    access_policy_rules = call_fmc_api_paginated('policy/accesspolicies/{}/accessrules'.format(access_policies[selected_policy]["id"]))
 
     # Iterate through all rules and enable logging
     for access_rule in access_policy_rules:
 
-        print("Updating Rule '{}'...".format(access_rule["name"]))
+        print("Checking Rule '{}'...".format(access_rule["name"]))
+
+        # Check to see if all logging is already enabled
+        if access_rule["enableSyslog"] and access_rule["logBegin"] and access_rule["logEnd"] and access_rule["sendEventsToFMC"]:
+            print('All logging already enabled for this rule... skipping.')
+            continue
 
         # Remove unique data
         access_rule.pop("metadata")
@@ -324,8 +400,9 @@ if __name__ == "__main__":
         access_rule["logEnd"] = True
         access_rule["sendEventsToFMC"] = True
 
-        Call_FMC_API('PUT', 'policy/accesspolicies/{}/accessrules/{}'.format(access_policies[selected_policy]["id"], access_rule["id"]), json_data=access_rule)
+        print('Enabling logging...')
+
+        call_fmc_api('PUT', 'policy/accesspolicies/{}/accessrules/{}'.format(access_policies[selected_policy]["id"], access_rule["id"]), json_data=access_rule)
 
     print("Done!")
     logging.info("Complete!")
-#----------------------------------------------------#
