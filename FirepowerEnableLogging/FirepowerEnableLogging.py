@@ -324,7 +324,7 @@ if __name__ == "__main__":
     # Fetch all policies from the FMC
     access_policies = call_fmc_api_paginated('policy/accesspolicies')
 
-    print("\nPlease select one of the following policies to export:\n")
+    print("\nPlease select which access policy you'd like to modify:\n")
 
     policy_index = 1
 
@@ -340,7 +340,7 @@ if __name__ == "__main__":
     if 0 < int(selected_policy) <= len(access_policies):
         selected_policy = int(selected_policy) - 1
     else:
-        print("ERROR: Policy selection was not correct.")
+        print("ERROR: Policy selection was not valid.")
         exit()
 
     print("Working...")
