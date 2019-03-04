@@ -22,35 +22,45 @@
 # Requirements
 # ------------
 #
-#   1) Must have Python 3 installed.
-#   2) Must have 'requests' Python module installed.  Easiest way to do that:
+#   1) Must have Python 3.x installed.
+#   2) Must have 'requests' Python module installed.
+#       You'll probably want to set up a virtual environment (https://docs.python.org/3/tutorial/venv.html)
 #     - wget https://bootstrap.pypa.io/get-pip.py
-#     - python get-pip.py		(may need to use 'sudo')
-#     - pip install requests	(may need to use 'sudo')
+#     - python get-pip.py       (may need to use 'sudo')
+#     - pip install requests    (may need to use 'sudo')
 #
 #
 # How To Run
 # ----------
 #
-#   1) Configure Anomali API_USER and API_KEY - can also tune the CONFIDENCE parameter
+#   1) Configure Anomali API_USER and API_KEY.  Optionally, tune the CONFIDENCE parameter
 #   2) Configure StealthWatch SW_DOMAIN_ID, SW_SMC_IP, SW_USERNAME, SW_PASSWORD
 #   3) Configure the HOST_GROUP_ID based on where you want groups to be imported
 #   4) Run the script / set a cron job
 #
 ############################################################
 
+import xml.etree.ElementTree
+
+import requests
+
+from requests.auth import HTTPBasicAuth
+from requests.packages import urllib3
+
+# Disable SSL Cert warnings
+urllib3.disable_warnings()
 
 ####################
 #  CONFIGURATION   #
 ####################
 #
-#----------------------------------------------------#
+# ---------------------------------------------------- #
 #
 
 # API Variables
-API_USER  = 'example@example.com'
-API_KEY   = '0000001111111222222333333344444'
-API_BASE  = 'https://api.threatstream.com/api/v2'
+API_USER = 'example@example.com'
+API_KEY = '0000001111111222222333333344444'
+API_BASE = 'https://api.threatstream.com/api/v2'
 
 # API result set limit
 API_OFFSET = 1000
@@ -60,45 +70,37 @@ CONFIDENCE = 60
 
 # StealthWatch SMC Variables
 SW_DOMAIN_ID = "123"
-SW_SMC_IP    = "127.0.0.1"
-SW_USERNAME  = "admin"
-SW_PASSWORD  = "lan411cope"
+SW_SMC_IP = "127.0.0.1"
+SW_USERNAME = ""
+SW_PASSWORD = ""
 
 # StealthWatch Parent Host Group ID
 HOST_GROUP_ID = 50000
 
 ANOMALI_TYPES = {
-    "Anonymous Proxies":    "anon_proxy",
-    "Anonymous VPNs":       "anon_vpn",
-    "APT Hosts":            "apt_ip",
-    "Bot Hosts":            "bot_ip",
-    "Brute Force Hosts":    "brute_ip",
-    "Malware Hosts":        "mal_ip",
-    "Scanning Hosts":       "scan_ip",
-    "Spamming Hosts":       "spam_ip",
-    "TOR Hosts":            "tor_ip"
+    "Anonymous Proxies": "anon_proxy",
+    "Anonymous VPNs": "anon_vpn",
+    "APT Hosts": "apt_ip",
+    "Bot Hosts": "bot_ip",
+    "Brute Force Hosts": "brute_ip",
+    "Malware Hosts": "mal_ip",
+    "Scanning Hosts": "scan_ip",
+    "Spamming Hosts": "spam_ip",
+    "TOR Hosts": "tor_ip"
 }
 
 #
-#----------------------------------------------------#
+# ---------------------------------------------------- #
 
 
 ####################
-# !!! DO WORK !!!  #
+#    FUNCTIONS     #
 ####################
 
-import requests
-import xml.etree.ElementTree
 
-from requests.auth import HTTPBasicAuth
-
-# If receiving SSL Certificate Errors, un-comment the line below
-#requests.packages.urllib3.disable_warnings()
-
-#----------------------------------------------------#
-# A function fetch data from Anomali
 def queryAPI(itype):
-    
+    '''A function fetch data from Anomali'''
+
     # Use global API variables
     global API_BASE, API_KEY, API_USER, API_OFFSET, CONFIDENCE
 
@@ -123,23 +125,23 @@ def queryAPI(itype):
 
         # Try to communicate with Anomali
         try:
-            
+
             # Make the GET request
             http_req = requests.get(url)
-            
+
             # If we get a HTTP 200, then proceed
             if http_req.status_code == 200:
-                
+
                 # Make a counter
                 count = len(http_req.json()['objects'])
 
                 # Add all the IPs to our array
                 for entry in http_req.json()['objects']:
-                    
+
                     # Add the IP to our array
                     ip_array.append(entry['ip'])
 
-            elif http_req.status_code == 401: 
+            elif http_req.status_code == 401:
                 # Log an access denied
                 print('Access Denied. Check API Credentials')
                 exit()
@@ -159,11 +161,10 @@ def queryAPI(itype):
 
     # Return the array of IPs
     return ip_array
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to build getHostGroups XML for the SMC
+
 def getHostGroupsXML():
+    '''A function to build getHostGroups XML for the SMC'''
 
     return_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     return_xml += "<soapenc:Envelope xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/envelope/\">\n"
@@ -175,11 +176,10 @@ def getHostGroupsXML():
     return_xml += "</soapenc:Envelope>"
 
     return return_xml
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to build addHostGroup XML for the SMC
+
 def addHostGroupXML(ip_array, group_name):
+    '''A function to build addHostGroup XML for the SMC'''
 
     return_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     return_xml += "<soapenc:Envelope xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/envelope/\">\n"
@@ -189,18 +189,17 @@ def addHostGroupXML(ip_array, group_name):
 
     for ip_address in ip_array:
         return_xml += "\t\t\t\t<ip-address-ranges>{}</ip-address-ranges>\n".format(ip_address)
-    
+
     return_xml += "\t\t\t</host-group>\n"
     return_xml += "\t\t</addHostGroup>\n"
     return_xml += "\t</soapenc:Body>\n"
     return_xml += "</soapenc:Envelope>"
 
     return return_xml
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to build setHostGroupIPRange XML for the SMC
+
 def setHostGroupIPRangeXML(ip_array, group_id):
+    '''A function to build setHostGroupIPRange XML for the SMC'''
 
     return_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     return_xml += "<soapenc:Envelope xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/envelope/\">\n"
@@ -217,11 +216,10 @@ def setHostGroupIPRangeXML(ip_array, group_id):
     return_xml += "</soapenc:Envelope>"
 
     return return_xml
-#----------------------------------------------------#
 
-#----------------------------------------------------#
-# A function to post supplied XML to the SMC
+
 def submitXMLToSMC(xml):
+    '''A function to post supplied XML to the SMC'''
 
     # Build the SMC URL
     SMC_URL = "https://{}/smc/swsService/configuration".format(SW_SMC_IP)
@@ -247,9 +245,13 @@ def submitXMLToSMC(xml):
     except Exception as err:
         print('Unable to post to the SMC - Error: {}'.format(err))
         exit()
-#----------------------------------------------------#
 
-#----------------------------------------------------#
+
+####################
+# !!! DO WORK !!!  #
+####################
+
+
 if __name__ == "__main__":
 
     # Get the Host Groups from StealthWatch
@@ -261,7 +263,7 @@ if __name__ == "__main__":
     # Get the Parent Host Group that was specified
     parent_host_group = root.find('.//{http://www.lancope.com/sws/sws-service}host-group[@id="' + str(HOST_GROUP_ID) + '"]')
 
-    # Go through each "itype" entry 
+    # Go through each "itype" entry
     for name, itype in ANOMALI_TYPES.items():
 
         # Create a Host Group placeholder
@@ -275,7 +277,7 @@ if __name__ == "__main__":
 
             # Iterate through all the of the children of the parent Host Group to see if a child Host Group exists already
             for child_host_group in parent_host_group.findall('.//{http://www.lancope.com/sws/sws-service}host-group'):
-                
+
                 # If the Host Group name matches the Anomali name, then use it
                 if name.lower() in child_host_group.get('name').lower():
                     host_group_id = child_host_group.get('id')
@@ -290,4 +292,3 @@ if __name__ == "__main__":
         else:
             # Print that we didn't find any data
             print("No IPs were found for the iType " + itype + "...")
-#----------------------------------------------------#
