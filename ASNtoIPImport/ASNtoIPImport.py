@@ -197,7 +197,7 @@ def submitXMLToSMC(xml):
             print('Success.')
             return http_req.text
         else:
-            print('SMC Connection Failure - HTTP Return Code: {}\nResponse: {}'.format(http_req.status_code, http_req.json()))
+            print('SMC Connection Failure - HTTP Return Code: {}\nResponse: {}'.format(http_req.status_code, http_req.text))
             exit()
 
     except Exception as err:
