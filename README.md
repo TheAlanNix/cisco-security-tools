@@ -67,7 +67,7 @@ This is a collection of scripts that can be used to manipulate exporters in Stea
 
 These are decent examples of how to leverage the REST API code within Stealthwatch.
 
-## [TalosBlacklistImport](https://github.com/CiscoSE/TalosBlacklistImporter)
+## [TalosBlacklistImporter](https://github.com/CiscoSE/TalosBlacklistImporter)
 
 **This script has been moved to its own repository in the CiscoSE Organization**
 
