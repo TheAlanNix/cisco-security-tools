@@ -67,6 +67,8 @@ This is a collection of scripts that can be used to manipulate exporters in Stea
 
 These are decent examples of how to leverage the REST API code within Stealthwatch.
 
-## [TalosBlacklistImport](TalosBlacklistImport/)
+## [TalosBlacklistImport](https://github.com/CiscoSE/TalosBlacklistImporter)
 
-This is a script to import the Talos IP Blacklist into a specific host group within Stealthwatch.  This would also allow you to also set a Custom Security Event for any traffic to/from IPs within that host group.
+**This script has been moved to its own repository in the CiscoSE Organization**
+
+This is a script to import Cisco Talos's IP Blacklist into a Tag (Host Group) within Stealthwatch. This will also optionally create a Custom Security Event (CSE) to alert on traffic to the blacklisted IPs.
