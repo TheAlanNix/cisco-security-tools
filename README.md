@@ -37,9 +37,9 @@ The *CP-to-FMC-Service-Object-Import* file will migrate service/port objects fro
 **PLEASE BE CAREFUL WITH THIS ONE**  
 The *NetworkObjectDelete* file will remove all objects from the FMC which have a specified prefix.  Please make sure you specify a prefix, or you **WILL** delete all objects.  "BOGUS_PREFIX" is now the default to prevent accidents.
 
-## [FirepowerActiveAuthentication](FirepowerActiveAuthentication/)
+## [FirepowerCustomPages](FirepowerCustomPages/)
 
-This is simply a custom Active Authentication login page that uses a modern UI, and Cisco theming.
+This is a set of custom HTTP pages for Active Authentication, Block Pages, etc., that use a modern UI and Cisco branding/colors.
 
 ## [FirepowerEnableLogging](FirepowerEnableLogging/)
 
