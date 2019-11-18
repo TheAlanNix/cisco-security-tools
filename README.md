@@ -47,7 +47,7 @@ This script will go through all of the rules in a Firepower 6.3 Access Control p
 
 Currently, I haven't found a way to update the "Default Action" log settings, so that's still manual, but this should handle all other rules.
 
-Also, there's no bulk update (only insert) for the access control rules, so this puppy can take a while if you have a lot of rules.
+Bulk update capabilities have been added to Firepower in recent releases, so the script now supports this.  This massively improves the time it takes for the script to run, so it is enabled by default.  However, if you find that your FMC errors out on the API calls, you can disable the option.
 
 ## [FirepowerImportScripts](FirepowerImportScripts/)
 
