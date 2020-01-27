@@ -18,11 +18,11 @@ This is a script to take in various threat intelligence feeds from Anomali (form
 
 Stealtwatch could then have Custom Security Events to monitor and alarm for traffic to those IPs.
 
-## [ASNtoIPImport](ASNtoIPImport/)
+## [ASNtoIPImport](https://github.com/CiscoSE/MaxmindAsnImporter)
 
-This is a script to import IP subnets that are advertised by specific ASNs into Stealthwatch host groups.
+**This script has been moved to its own repository in the CiscoSE Organization**
 
-The ASN to IP mapping data is sourced from MaxMind.  The script will search through their data for specified keywords, and then add the associated IP ranges to a Stealthwatch host group of the specified name.
+This is a script to import MaxMind ASN data into Tags (Host Groups) within Stealthwatch Enterprise, allowing for more granular tuning and identification of network flows.
 
 ## [CheckpointObjectImport](CheckpointObjectImport/)
 
